@@ -1,58 +1,49 @@
 const express = require("express");
-const bodyparser = require("body-parser");
 const ejs = require("ejs");
+const bodyParser = require('body-parser');
+const date = require(__dirname+ "/date.js")
 const app = express();
-app.use(bodyparser.urlencoded({ extended: true }));
-app.set('view engine', 'ejs'); // to use ejs 
+
+const listItems = [];
+const workItems = [];
+
+app.set('view engine', 'ejs');
+
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-var items = ["Buy Food", "Cook Food", "Eat Food"];
-var workitems = [];
+app.get("/", function (req, res)
+ {
+    let day = date.getDate();  //acquiring the return value of getDate() function in date.js
 
-
-app.get("/", function (req, res) {
-
-    var today = new Date();
-    var options = {  // to get a custom date format
-        weekday: "long",
-        day: "numeric",
-        month: "long"
-    };
-
-    var day = today.toLocaleDateString("en-us", options); // it maps the date into custom options object and creates a string
-    res.render("list", { listTitle: day, newListItems: items }); // here the express.js looks for view folder and then looks for ejs file Note:- every key-value pair must be sent only via this get method ans must be specified here
+    res.render("list", {
+        listTitle: day,
+        listItems: listItems
+    });
 });
 
 app.get("/work", function (req, res) {
-    res.render("list", { listTitle: "Work List", newListItems: workitems });
+    res.render("list", {
+        listTitle: "Work List",
+        listItems: workItems
+    });
 });
 
-
-// app.post("/work", function (req, res) {
-//     var item = req.body.newItem;
-//     workitems.push(item);
-//     res.redirect("/work");
-// })
-
+app.get("/about",function(req,res){
+    res.render("about");
+})
 
 app.post("/", function (req, res) {
-    var item = req.body.listitem;
 
-    if (req.body.list === "work") {  //where list is the name of button whose value is work
-        workitems.push(item);
+    if (req.body.listSubmit === "Work") { 
+        workItems.push(req.body.listitem);
         res.redirect("/work");
-    }
-    else {
-        items.push(item);
+    } else {
+        listItems.push(req.body.listitem);
         res.redirect("/");
     }
-
-
-    // res.render("list",{newListItem:item}); will throw error as newListItem key is not specified in get() method
-    // res.redirect("/"); // redirects to root route where it will now send the value of newListItem to the ejs page
 });
 
-
 app.listen(3000, function () {
-    console.log("Server started at port 3000");
-})
+    console.log("Server running on port 3000.");
+});
